@@ -6,9 +6,13 @@ on:
     branches:
     - main
     
+env:
+  AZURE_WEBAPP_NAME: DatingApp
+  AZURE_WEBAPP_PACKAGE_PATH: "./publish"
+  
 jobs:
   publish:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     
     steps:
       - uses: actions/checkout@v3
@@ -16,7 +20,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '6.0.x'
+          dotnet-version: '7.0.x'
           
       - name: restore
         run: dotnet restore ./DatingApp.sln
@@ -25,4 +29,11 @@ jobs:
         run: dotnet build ./DatingApp.sln --configuration Release --no-restore
         
       - name: Publish
-        run: dotnet publish ./DatingApp.sln --configuration Release --no-build
+        run: dotnet publish ./DatingApp.sln --configuration Release --no-build --output '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
+        
+      - name: Deployment
+        uses: actions/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ''
+          package: "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
